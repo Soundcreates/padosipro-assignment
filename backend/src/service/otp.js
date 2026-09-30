@@ -1,3 +1,5 @@
+//code by shantanav mukherjee written on 30/09/2026
+
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const { redisClient } = require("./redis");

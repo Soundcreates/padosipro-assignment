@@ -58,10 +58,12 @@ const validateUser = (data = {}) => {
 const createUsersTableSQL = `
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    mobile VARCHAR(10) NOT NULL UNIQUE,
-    country_code VARCHAR(5) NOT NULL DEFAULT '+91',
-    address TEXT NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(100),
+    mobile VARCHAR(10) UNIQUE,
+    country_code VARCHAR(5) DEFAULT '+91',
+    address TEXT,
     business_name VARCHAR(150),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

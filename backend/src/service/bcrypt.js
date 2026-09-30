@@ -1,28 +1,21 @@
-const bcrypt = require("bcrypt");
+//code by shantanav mukherjee written on 30/09/2026
 
-const hashPassword = async (pasword) => {
-    if(password == null || password == undefined || password == ""){
+const bcrypt = require("bcrypt");
+const config = require("../config");
+
+const hashPassword = async (password) => {
+    if (password == null || password === undefined || password === "") {
         throw new Error("Password is required");
     }
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    return hashedPassword;
+    const salt = await bcrypt.genSalt(config.BCRYPT_SALT_ROUNDS);
+    return bcrypt.hash(password, salt);
 };
 
 const comparePassword = async (password, hashedPassword) => {
-    try{
-
-    if(password == null || password == undefined || password == ""){
+    if (password == null || password === undefined || password === "") {
         throw new Error("Password is required");
     }
-        const isMatch = await bcrypt.compare(password, hashedPassword);
-        if(!isMatch){
-            throw new Error("Invalid password");
-        }
-        return isMatch;
-    }catch(error){
-        throw new Error(error.message);
-    }
+    return bcrypt.compare(password, hashedPassword);
 };
 
 module.exports = { hashPassword, comparePassword };

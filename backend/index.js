@@ -5,41 +5,24 @@ const cors =require("cors");
 const dotenv =require("dotenv").config();
 
 const { connectDB } = require("./src/service/db");
+const indexRouter = require("./src/routes/indexRoutes");
 const app = express();
-const allowedrOrigins = ["*"];
+
 const corsOptions = {
-    origin: (origin, callback) => {
-        if (origin == undefined || allowedrOrigins.find(o => o === origin) == undefined){
-            return callback(new Error("Not allowed by CORS"));
-        }else{
-            return callback(null,true);
-        }
-    },
-        callback: true,
-        allowedHeaders: ["Content-Type", "Authorization"],
-        credentials: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        preflightContinue: false,
-        optionsSuccessStatus: 200,
-        maxAge: 86400,
-        exposedHeaders: ["Content-Type", "Authorization"],
-        origin: (origin, callback) => {
-            if (origin == undefined || allowedrOrigins.find(o => o === origin) == undefined){
-                return callback(new Error("Not allowed by CORS"));
-            }else{
-                return callback(null,true);
-            }
-        }
-}
+    origin: true,
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+};
 
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/api", indexRouter);
+
 const PORT = 3003;
 
-app.listen(PORT, () => {
-    connectDB();
-    console.log("Connected to the database");
+app.listen(PORT, async () => {
+    await connectDB();
     console.log(`Server is running on port ${PORT}`);
-}
-);
+});

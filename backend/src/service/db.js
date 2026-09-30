@@ -1,3 +1,5 @@
+//code by shantanav mukherjee written on 30/09/2026
+
 const { Pool } = require("pg");
 
 const pool = new Pool({

@@ -1,12 +1,12 @@
-const authRouter = requrie("express").Router();
+//code by shantanav mukherjee written on 30/09/2026
 
+const express = require("express");
+const authRouter = express.Router();
+const authController = require("../controllers/authController");
+const { authenticate } = require("../middleware/authMiddleware");
 
+authRouter.post("/register", authController.register);
+authRouter.post("/login", authController.login);
+authRouter.get("/me", authenticate, authController.me);
 
-authRouter.post("/register", (req,res) => {
-        //register logic here
-});
-
-authRouter.post("/login", (req,res) => {
-    //login logic here
-});
 module.exports = authRouter;
