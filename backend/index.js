@@ -2,7 +2,9 @@
 
 const express = require("express");
 const cors =require("cors");
-const { connectDB } = require("./service/db");
+const dotenv =require("dotenv").config();
+
+const { connectDB } = require("./src/service/db");
 const app = express();
 const allowedrOrigins = ["*"];
 const corsOptions = {

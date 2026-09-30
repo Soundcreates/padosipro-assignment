@@ -28,15 +28,49 @@ services:
     ports:
       - "3000:3000"
     environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://dev_user:a_secure_dev_password@db:5432/dev_db
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
       POSTGRES_USER: dev_user
       POSTGRES_PASSWORD: a_secure_dev_password
       POSTGRES_DB: dev_db
-      PORT: 3000
+      JWT_SECRET: dev_jwt_secret_change_me
+      JWT_EXPIRES_IN: 1h
+      BCRYPT_SALT_ROUNDS: 10
+      CORS_ORIGINS: "*"
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_SECURE: "false"
+      MAIL_FROM: noreply@padosipro.local
+      OTP_LENGTH: 6
+      OTP_EXPIRES_IN_MINUTES: 10
+      REDIS_URL: redis://redis:6379
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - padosipro_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: padosipro_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - padosipro_net
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: padosipro_mailpit
+    restart: always
+    ports:
+      - "1025:1025"
+      - "8025:8025"
     networks:
       - padosipro_net
 
