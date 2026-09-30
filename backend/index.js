@@ -2,7 +2,7 @@
 
 const express = require("express");
 const cors =require("cors");
-
+const { connectDB } = require("./service/db");
 const app = express();
 const allowedrOrigins = ["*"];
 const corsOptions = {
@@ -30,12 +30,14 @@ const corsOptions = {
         }
 }
 
-cors.use(corsOptions);
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const PORT = 3000;
+const PORT = 3003;
 
 app.listen(PORT, () => {
+    connectDB();
+    console.log("Connected to the database");
     console.log(`Server is running on port ${PORT}`);
 }
 );
