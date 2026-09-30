@@ -4,6 +4,7 @@ const { pool } = require("./db");
 const bcryptService = require("./bcrypt");
 const jwtService = require("./jwt");
 const otpService = require("./otp");
+const { evaluateLogin } = require("./authRules");
 
 const register = async (email, password) => {
     const existing = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
@@ -32,35 +33,33 @@ const register = async (email, password) => {
 const login = async (email, password) => {
     const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
     const user = result.rows[0];
+    const isPasswordValid = user
+        ? await bcryptService.comparePassword(password, user.password)
+        : false;
 
-    if (!user) {
-        throw new Error("Invalid credentials");
-    }
-
-    const isPasswordValid = await bcryptService.comparePassword(password, user.password);
-    if (!isPasswordValid) {
-        throw new Error("Invalid credentials");
-    }
-
-    if (!user.is_verified) {
-        try {
-            await otpService.sendOtpEmail(email);
-        } catch (error) {
-            if (error.message !== "Email is on cooldown") {
-                throw error;
+    const decision = evaluateLogin({ user, isPasswordValid });
+    if (!decision.ok) {
+        if (decision.needsVerification) {
+            try {
+                await otpService.sendOtpEmail(email);
+            } catch (error) {
+                if (error.message !== "Email is on cooldown") {
+                    throw error;
+                }
             }
+            return {
+                ok: false,
+                needsVerification: true,
+                message: decision.message,
+            };
         }
-        return {
-            ok: false,
-            needsVerification: true,
-            message: "Please verify your email to continue",
-        };
+        throw new Error(decision.error);
     }
 
     const token = jwtService.generateToken(user.id);
     return {
         ok: true,
-        user: user,
+        user: { id: user.id, email: user.email, isVerified: user.is_verified },
         token,
         message: "Login successful",
     };

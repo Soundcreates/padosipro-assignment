@@ -1,5 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TASK_CATEGORIES, type TaskItem } from '@/constants/tasks';
 
 const DAILY_TASKS_KEY = 'tasks_daily';
