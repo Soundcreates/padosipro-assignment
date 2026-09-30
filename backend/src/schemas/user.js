@@ -7,6 +7,7 @@ const userFields = {
     mobile: { type: "string", required: true },
     address: { type: "string", required: true },
     businessName: { type: "string", required: false },
+    isVerified: {type: "boolean",required:true, default: false}
 };
 
 const normalizeIndianMobile = (mobile) => {

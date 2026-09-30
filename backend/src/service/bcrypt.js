@@ -18,4 +18,14 @@ const comparePassword = async (password, hashedPassword) => {
     return bcrypt.compare(password, hashedPassword);
 };
 
+
+const hashOtp = async (otp) => {
+    const salt =await bcrypt.genSalt(config.BCRYPT_SALT_ROUNDS);
+    return bcrypt.hash(otp, salt);
+}
+
+const compareOtp = async (otp, hashedOtp) => {
+    return bcrypt.compare(otp, hashedOtp);
+}
+
 module.exports = { hashPassword, comparePassword };

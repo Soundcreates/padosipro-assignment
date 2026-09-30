@@ -1,6 +1,6 @@
 //code by shantanav mukherjee written on 30/09/2026
 
-const crypto = require("crypto");
+const bcrypt =require("bcrypt");
 const nodemailer = require("nodemailer");
 const { redisClient } = require("./redis");
 const config = require("../config");
@@ -53,7 +53,13 @@ async function sendOtpEmail(email) {
     const otp = generateOtp();
     const transporter = createTransporter();
 
-    await redisClient.set(otpKey(email), hashOtp(otp), { EX: 10 * 60 });
+
+    //i think will be putting a payload object in the otpkey cache , cuz it will be better
+    const otpCachePayload = {
+        otp: await hashOtp(otp),
+        attempts: 0,
+    };
+    await redisClient.set(otpKey(email),  otpCachePayload, { EX: 10 * 60 });
     await redisClient.set(cooldownKey(email), "1", { EX: 60 });
 
     await transporter.sendMail({
@@ -69,11 +75,58 @@ async function sendOtpEmail(email) {
         `,
     });
 
-    return { ok: true, email };
+    return { ok: true, email ,true_otp: otp};
 }
+
+const resendOtpEmail = async (email) => {
+    if(!email || typeof email !== "string" || email.trim() ==="") {
+        throw new Error("Invalid email");
+    }
+    
+    if(!redisClient.isOpen){
+        await redisClient.connectRedis();
+    }
+    const cooldown = await redisClient.get(cooldownKey(email));
+    if(cooldown || cooldown > 0){
+        return {ok: false, message: "Email is on cooldown"};
+    }
+    await sendOtpEmail(email);
+    return {ok: true, message: "OTP resent successfully"};
+
+
+
+}
+
+const checkRedisConnection = async () => {
+    if(!redisClient.isOpen){
+        await redisClient.connectRedis();
+    }
+}
+const verifyOtp = async (email, givenOtp) => {
+    await checkRedisConnection();
+    const hashedOtp = await redisClient.get(otpKey(email).otp);
+    if(!compareOtp(givenOtp,hashedOtp)){
+        const attempts = await redisClient.get(otpKey(email).attempts);
+        if(attempts==5){
+            return {ok: false, message: "This is your last attempt"};
+        }
+        if(attempts > 5) {
+            return {ok: false, message: "Too many attempts, please try again later"};
+        }
+        await redisClient.set(otpKey(email).attempts, attempts+1,{keepttl:true}); 
+        return  {ok: false, message: "Invalid OTP"};       
+    }
+    await redisClient.del(otpKey(email));
+    return {ok: true, message: "OTP verified successfully"};
+}
+
+
 
 module.exports = {
     generateOtp,
     hashOtp,
     sendOtpEmail,
+    resendOtpEmail,
+    verifyOtp,
+
 };

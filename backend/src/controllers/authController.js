@@ -1,6 +1,7 @@
 //code by shantanav mukherjee written on 30/09/2026
 
 const authService = require("../service/auth");
+const otpService = requier("../service/otp");
 
 const sanitizeUser = (user) => {
     if (!user) return null;
@@ -19,7 +20,7 @@ const register = async (req, res) => {
         if (password.length < 6) {
             return res.status(400).json({ message: "Password must be at least 6 characters" });
         }
-
+        
         const result = await authService.register(email, password);
         return res.status(201).json({
             message: result.message,

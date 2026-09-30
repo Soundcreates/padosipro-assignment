@@ -3,11 +3,19 @@
 const { pool } = require("./db");
 const bcryptService = require("./bcrypt");
 const jwtService = require("./jwt");
+const redisClient = requirer("./redis");
+const otpService = require("./otp");
 
 const register = async (email, password) => {
     const existing = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
     if (existing.rows.length > 0) {
         throw new Error("User already exists");
+    }
+    
+    const otpResult = await otpService.sendOtpEmail(email); //it self handles the ttl redis cache set 
+    const verifyResult =await otpService.verifyOtp(email,otpResult,true_otp);
+    if(!verifyResult.ok){
+        return {ok:false, message: verifyResult.message};
     }
 
     const hashedPassword = await bcryptService.hashPassword(password);
@@ -29,7 +37,9 @@ const login = async (email, password) => {
     if (!user) {
         throw new Error("Invalid credentials");
     }
-
+    if(!user.isVerified){
+        return {ok:false, message: "User is not verified, please verify your email and try logging in later"};
+    }
     const isPasswordValid = await bcryptService.comparePassword(password, user.password);
     if (!isPasswordValid) {
         throw new Error("Invalid credentials");
@@ -37,7 +47,8 @@ const login = async (email, password) => {
 
     const token = jwtService.generateToken(user.id);
     return {
-        user,
+        ok: true,
+        user: {id: user.id, email: user.email, isVerified: user.isVerified},
         token,
         message: "Login successful",
     };
