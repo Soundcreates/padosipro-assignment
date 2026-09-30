@@ -27,11 +27,10 @@ type MeResult =
   | { ok: false; error: string };
 
 const API_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? 'https://kisha-volcanologic-motherly.ngrok-free.dev';
+  process.env.EXPO_PUBLIC_API_URL ?? 'https://padosipro-api-m8f3.onrender.com';
 
 const defaultHeaders = {
   'Content-Type': 'application/json',
-  'ngrok-skip-browser-warning': 'true',
 };
 
 function toCachedUser(user: Record<string, unknown>): CachedUser {

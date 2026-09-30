@@ -2,46 +2,17 @@
 
 Neighborhood task helper: Expo (React Native) mobile app + Express API, Postgres, and Redis.
 
+The **backend is already hosted on Render** (`https://padosipro-api-m8f3.onrender.com`), so you do **not** need Docker, ngrok, or local API setup to try the app. Just run the React Native client.
+
 ## Prerequisites
 
 - Node.js 22+
 - npm
-- Docker + Docker Compose
 - Expo Go **or** Xcode / Android Studio for simulators
-- [ngrok](https://ngrok.com/) CLI (for testing the API from a physical device)
-- Gmail App Password (or other SMTP) for OTP email
 
-## Startup
-
-Use **3 terminals** from the repo root.
-
-### 1. Backend stack (Postgres, Redis, API)
+## Startup (app only)
 
 ```bash
-cp backend/.env.example backend/.env
-# fill SMTP_* values in backend/.env
-
-docker compose up --build
-```
-
-API: `http://localhost:3003`
-
-### 2. ngrok (physical device / Expo Go)
-
-```bash
-ngrok http 3003
-```
-
-Copy the HTTPS forwarding URL (e.g. `https://abc123.ngrok-free.dev`).
-
-Simulator on the same machine can often use `http://localhost:3003` or your LAN IP instead.
-
-### 3. Mobile app
-
-```bash
-cp app/.env.example app/.env
-# set EXPO_PUBLIC_API_URL to the ngrok HTTPS URL (or local API URL)
-
 cd app
 npm install
 npx expo start
@@ -49,32 +20,58 @@ npx expo start
 
 Then open iOS Simulator (`i`), Android emulator (`a`), or scan the QR code with Expo Go.
 
+The app talks to the Render API by default (`EXPO_PUBLIC_API_URL` / fallback in `src/api/auth.ts`).
+
 ### Happy path
 
 Register → enter OTP from email → confirm profile → choose daily tasks → home.
+
+> First request after idle may take ~30–60s while the free Render instance wakes up.
+
+## Optional: run the API locally
+
+Only needed if you want to develop the backend yourself.
+
+```bash
+cp backend/.env.example backend/.env
+# fill SMTP_* and DB/Redis values
+
+docker compose up --build
+```
+
+Then point the app at your local API:
+
+```bash
+cp app/.env.example app/.env
+# set EXPO_PUBLIC_API_URL=http://localhost:3003
+```
 
 ## Environment variables
 
 **Never commit secrets.**
 
-### `backend/.env`
+### Hosted backend (Render)
+
+Already configured on the `padosipro-api` service (Postgres, Redis/Key Value, SMTP, JWT).
+
+### `backend/.env` (local only)
 
 | Variable | Purpose |
 | --- | --- |
 | `SMTP_USER` / `SMTP_PASS` | SMTP auth |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` | SMTP connection |
 | `SMTP_MAIL_FROM` | From address for OTPs |
-| `DATABASE_URL` | Postgres (overridden by Compose) |
-| `REDIS_URL` | Redis (overridden by Compose) |
+| `DATABASE_URL` | Postgres |
+| `REDIS_URL` | Redis |
 | `JWT_SECRET` / `JWT_EXPIRES_IN` | Auth tokens |
 | `BCRYPT_SALT_ROUNDS` | Password hashing |
 | `PORT` | API port (default `3003`) |
 
-### `app/.env`
+### `app/.env` (optional)
 
 | Variable | Purpose |
 | --- | --- |
-| `EXPO_PUBLIC_API_URL` | API base URL (ngrok HTTPS or local) |
+| `EXPO_PUBLIC_API_URL` | API base URL (defaults to Render) |
 
 ## Backend tests
 
@@ -104,4 +101,4 @@ npx expo run:android --variant release
 
 - `app/` — Expo Router mobile client
 - `backend/` — Express API, auth, OTP, migrations
-- `docker-compose.yml` — Postgres, Redis, API
+- `docker-compose.yml` — optional local Postgres, Redis, API

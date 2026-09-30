@@ -1,6 +1,6 @@
 # PadosiPro mobile app
 
-Expo Router client for PadosiPro. See the root [README](../README.md) for full-stack setup, environment variables, and APK build steps.
+Expo Router client for PadosiPro. The API is hosted on Render — see the root [README](../README.md).
 
 ## Quick start
 
@@ -9,4 +9,4 @@ npm install
 npx expo start
 ```
 
-Set `API_URL` in `src/api/auth.ts` to your backend (Docker on port `3003`, or an ngrok URL for a physical device).
+No local backend setup is required. The default API URL is `https://padosipro-api-m8f3.onrender.com`.
