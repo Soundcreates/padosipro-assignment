@@ -1,0 +1,407 @@
+/**
+ * PadosiPro design system
+ * Palette inspired by app.padosipro.com — tokens, type, and components are original.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap');
+
+/* -------------------------------------------------------------------------- */
+/* Tokens                                                                     */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  /* Color — light */
+  --pp-brand: #155c49;
+  --pp-brand-hover: #0f4a3a;
+  --pp-brand-muted: rgba(21, 92, 73, 0.12);
+  --pp-brand-soft: #e8f2ee;
+  --pp-success: #027a48;
+  --pp-canvas: #fafaf7;
+  --pp-surface: #ffffff;
+  --pp-ink: #101828;
+  --pp-ink-muted: #667085;
+  --pp-border: #d0d5dd;
+  --pp-danger: #b42318;
+  --pp-danger-muted: rgba(180, 35, 24, 0.1);
+  --pp-focus-ring: rgba(21, 92, 73, 0.35);
+  --pp-disabled-opacity: 0.45;
+
+  /* Type */
+  --pp-font-display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --pp-font-body: 'DM Sans', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  --pp-font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Bridge existing Expo font vars to the design system */
+  --font-display: var(--pp-font-body);
+  --font-serif: var(--pp-font-display);
+  --font-mono: var(--pp-font-mono);
+  --font-rounded: var(--pp-font-body);
+
+  /* Space */
+  --pp-space-1: 4px;
+  --pp-space-2: 8px;
+  --pp-space-3: 12px;
+  --pp-space-4: 16px;
+  --pp-space-5: 24px;
+  --pp-space-6: 40px;
+
+  /* Radius — asymmetric vs uniform 12px */
+  --pp-radius-sm: 6px;
+  --pp-radius-md: 10px;
+  --pp-radius-lg: 18px;
+  --pp-radius-pill: 999px;
+
+  /* Elevation */
+  --pp-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --pp-shadow-md: 0 8px 24px rgba(16, 24, 40, 0.08);
+
+  /* Motion */
+  --pp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --pp-duration: 160ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pp-brand: #3d9a7a;
+    --pp-brand-hover: #52b090;
+    --pp-brand-muted: rgba(61, 154, 122, 0.18);
+    --pp-brand-soft: #14352c;
+    --pp-success: #32d583;
+    --pp-canvas: #0c1411;
+    --pp-surface: #15201b;
+    --pp-ink: #f2f4f7;
+    --pp-ink-muted: #98a2b3;
+    --pp-border: #2a3a33;
+    --pp-danger: #f97066;
+    --pp-danger-muted: rgba(249, 112, 102, 0.16);
+    --pp-focus-ring: rgba(61, 154, 122, 0.45);
+    --pp-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --pp-shadow-md: 0 10px 28px rgba(0, 0, 0, 0.45);
+  }
+}
+
+.dark {
+  --pp-brand: #3d9a7a;
+  --pp-brand-hover: #52b090;
+  --pp-brand-muted: rgba(61, 154, 122, 0.18);
+  --pp-brand-soft: #14352c;
+  --pp-success: #32d583;
+  --pp-canvas: #0c1411;
+  --pp-surface: #15201b;
+  --pp-ink: #f2f4f7;
+  --pp-ink-muted: #98a2b3;
+  --pp-border: #2a3a33;
+  --pp-danger: #f97066;
+  --pp-danger-muted: rgba(249, 112, 102, 0.16);
+  --pp-focus-ring: rgba(61, 154, 122, 0.45);
+  --pp-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --pp-shadow-md: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Base                                                                       */
+/* -------------------------------------------------------------------------- */
+
+html,
+body {
+  background-color: var(--pp-canvas);
+  color: var(--pp-ink);
+  font-family: var(--pp-font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--pp-brand-muted);
+  color: var(--pp-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--pp-brand);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--pp-focus-ring);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Typography roles                                                           */
+/* -------------------------------------------------------------------------- */
+
+.pp-title {
+  font-family: var(--pp-font-display);
+  font-size: 1.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--pp-ink);
+  margin: 0;
+}
+
+.pp-body {
+  font-family: var(--pp-font-body);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--pp-ink);
+  margin: 0;
+}
+
+.pp-caption {
+  font-family: var(--pp-font-body);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--pp-ink-muted);
+  margin: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Layout utilities                                                           */
+/* -------------------------------------------------------------------------- */
+
+.pp-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-4);
+}
+
+.pp-stack--tight {
+  gap: var(--pp-space-2);
+}
+
+.pp-stack--loose {
+  gap: var(--pp-space-5);
+}
+
+.pp-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pp-space-2);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Buttons                                                                    */
+/* -------------------------------------------------------------------------- */
+
+.pp-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pp-space-2);
+  min-height: 48px;
+  padding: 0 var(--pp-space-5);
+  border: 1.5px solid transparent;
+  border-radius: var(--pp-radius-pill);
+  font-family: var(--pp-font-body);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--pp-duration) var(--pp-ease),
+    border-color var(--pp-duration) var(--pp-ease),
+    color var(--pp-duration) var(--pp-ease),
+    transform var(--pp-duration) var(--pp-ease),
+    box-shadow var(--pp-duration) var(--pp-ease);
+}
+
+.pp-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.pp-btn:disabled,
+.pp-btn[aria-disabled='true'] {
+  opacity: var(--pp-disabled-opacity);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.pp-btn--primary {
+  background-color: var(--pp-brand);
+  color: #ffffff;
+  box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.18);
+}
+
+.pp-btn--primary:hover:not(:disabled) {
+  background-color: var(--pp-brand-hover);
+}
+
+.pp-btn--ghost {
+  background-color: transparent;
+  border-color: var(--pp-border);
+  color: var(--pp-ink);
+}
+
+.pp-btn--ghost:hover:not(:disabled) {
+  background-color: var(--pp-brand-muted);
+  border-color: var(--pp-brand);
+  color: var(--pp-brand);
+}
+
+.pp-btn--danger {
+  background-color: var(--pp-danger);
+  color: #ffffff;
+}
+
+.pp-btn--danger:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Form fields                                                                */
+/* -------------------------------------------------------------------------- */
+
+.pp-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-2);
+  width: 100%;
+}
+
+.pp-label {
+  font-family: var(--pp-font-body);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pp-ink-muted);
+}
+
+.pp-input {
+  appearance: none;
+  width: 100%;
+  min-height: 48px;
+  padding: var(--pp-space-3) var(--pp-space-4);
+  border: 1.5px solid var(--pp-border);
+  border-radius: var(--pp-radius-md);
+  border-bottom-left-radius: var(--pp-radius-lg);
+  background-color: var(--pp-surface);
+  color: var(--pp-ink);
+  font-family: var(--pp-font-body);
+  font-size: 1rem;
+  line-height: 1.4;
+  transition:
+    border-color var(--pp-duration) var(--pp-ease),
+    box-shadow var(--pp-duration) var(--pp-ease);
+}
+
+.pp-input::placeholder {
+  color: var(--pp-ink-muted);
+  opacity: 0.75;
+}
+
+.pp-input:hover:not(:disabled):not(:focus) {
+  border-color: color-mix(in srgb, var(--pp-border) 60%, var(--pp-brand));
+}
+
+.pp-input:focus {
+  outline: none;
+  border-color: var(--pp-brand);
+  box-shadow: 0 0 0 3px var(--pp-focus-ring);
+}
+
+.pp-input:disabled {
+  opacity: var(--pp-disabled-opacity);
+  cursor: not-allowed;
+}
+
+.pp-hint {
+  font-size: 0.8125rem;
+  color: var(--pp-ink-muted);
+  margin: 0;
+}
+
+.pp-error {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--pp-danger);
+  margin: 0;
+}
+
+.pp-input[aria-invalid='true'] {
+  border-color: var(--pp-danger);
+  box-shadow: 0 0 0 3px var(--pp-danger-muted);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Surfaces                                                                   */
+/* -------------------------------------------------------------------------- */
+
+.pp-surface {
+  background-color: var(--pp-surface);
+  color: var(--pp-ink);
+}
+
+.pp-panel {
+  background-color: var(--pp-surface);
+  color: var(--pp-ink);
+  border: 1px solid var(--pp-border);
+  border-radius: var(--pp-radius-lg);
+  box-shadow: var(--pp-shadow-sm);
+  padding: var(--pp-space-5);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Chips / badges / links / divider                                           */
+/* -------------------------------------------------------------------------- */
+
+.pp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pp-space-1);
+  min-height: 28px;
+  padding: 0 var(--pp-space-3);
+  border-radius: var(--pp-radius-sm);
+  background-color: var(--pp-brand-muted);
+  color: var(--pp-brand);
+  font-family: var(--pp-font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.pp-chip--success {
+  background-color: color-mix(in srgb, var(--pp-success) 14%, transparent);
+  color: var(--pp-success);
+}
+
+.pp-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: var(--pp-radius-pill);
+  background-color: var(--pp-brand);
+  color: #ffffff;
+  font-family: var(--pp-font-body);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pp-link {
+  color: var(--pp-brand);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.18em;
+  transition: color var(--pp-duration) var(--pp-ease);
+}
+
+.pp-link:hover {
+  color: var(--pp-brand-hover);
+}
+
+.pp-divider {
+  display: block;
+  width: 100%;
+  height: 0;
+  margin: var(--pp-space-4) 0;
+  border: 0;
+  border-top: 1px solid var(--pp-border);
+}
