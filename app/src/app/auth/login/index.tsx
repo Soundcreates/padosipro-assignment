@@ -1,16 +1,48 @@
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { login } from '@/api/auth';
 import { AuthHeader } from '@/components/ui/auth-header';
 import { AuthScreen } from '@/components/ui/auth-screen';
 import { AppButton } from '@/components/ui/button';
-import { NetworkStateLinks } from '@/components/ui/network-state-links';
 import { TextField } from '@/components/ui/text-field';
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function LoginScreen() {
   const theme = useTheme();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const updateField = (key: keyof typeof formData) => (value: string) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleLogin = async () => {
+    setError('');
+    setLoading(true);
+    const result = await login(formData.email, formData.password);
+    setLoading(false);
+
+    if (!result.ok) {
+      if (result.needsVerification) {
+        router.push({
+          pathname: '/auth/otp',
+          params: { email: formData.email.trim().toLowerCase() },
+        });
+        return;
+      }
+      setError(result.error);
+      return;
+    }
+
+    router.replace('/home');
+  };
 
   return (
     <AuthScreen>
@@ -27,7 +59,8 @@ export default function LoginScreen() {
       <View style={styles.form}>
         <TextField
           label="Email"
-          defaultValue=""
+          value={formData.email}
+          onChangeText={updateField('email')}
           placeholder="you@example.com"
           keyboardType="email-address"
           autoCapitalize="none"
@@ -35,27 +68,18 @@ export default function LoginScreen() {
         />
         <TextField
           label="Password"
-          defaultValue=""
+          value={formData.password}
+          onChangeText={updateField('password')}
           placeholder="••••••••"
           secureTextEntry
           autoComplete="password"
         />
+        {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
 
       <View style={styles.actions}>
-        <Link href="/auth/otp" asChild>
-          <AppButton label="Sign in" />
-        </Link>
-        <Link href="/auth/otp" asChild>
-          <AppButton label="Continue with OTP" variant="ghost" />
-        </Link>
+        <AppButton label="Sign in" loading={loading} onPress={handleLogin} />
       </View>
-
-      <NetworkStateLinks
-        loadingHref="/auth/login/loading"
-        emptyHref="/auth/login/empty"
-        errorHref="/auth/login/error"
-      />
 
       <View style={styles.footerRow}>
         <Text style={[styles.footerText, { color: theme.textSecondary }]}>New here?</Text>
@@ -87,6 +111,12 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: Spacing.three,
+  },
+  error: {
+    color: '#B42318',
+    fontSize: 14,
+    fontFamily: Fonts.sans,
+    fontWeight: '500',
   },
   actions: {
     gap: Spacing.two,

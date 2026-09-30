@@ -1,16 +1,53 @@
-import { Link } from 'expo-router';
+import { router } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AuthHeader } from '@/components/ui/auth-header';
 import { AuthScreen } from '@/components/ui/auth-screen';
 import { AppButton } from '@/components/ui/button';
-import { NetworkStateLinks } from '@/components/ui/network-state-links';
 import { TASK_CATEGORIES } from '@/constants/tasks';
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import {
+  getPendingTaskIds,
+  getSelectedTaskIds,
+  setPendingTaskIds,
+} from '@/storage/tasksStorage';
 
 export default function TaskSelectScreen() {
   const theme = useTheme();
+  const [search, setSearch] = useState('');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const pending = await getPendingTaskIds();
+      const saved = pending.length > 0 ? pending : await getSelectedTaskIds();
+      if (!cancelled) {
+        setSelectedIds(saved);
+        setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const query = search.trim().toLowerCase();
+
+  const toggleTask = (taskId: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(taskId) ? prev.filter((id) => id !== taskId) : [...prev, taskId]
+    );
+  };
+
+  const handleReview = async () => {
+    await setPendingTaskIds(selectedIds);
+    router.push('/home/tasks/confirm');
+  };
 
   return (
     <AuthScreen>
@@ -20,7 +57,7 @@ export default function TaskSelectScreen() {
           Choose your tasks
         </Text>
         <Text style={[styles.subtitle, { color: theme.textSecondary, fontFamily: Fonts.sans }]}>
-          Search, pick from each category, then confirm. You can change these later.
+          Search, pick from each category, then confirm. Tasks reset every midnight.
         </Text>
       </View>
 
@@ -31,56 +68,67 @@ export default function TaskSelectScreen() {
         ]}>
         <Text style={[styles.searchLabel, { color: theme.textSecondary }]}>Search</Text>
         <TextInput
-          defaultValue=""
+          value={search}
+          onChangeText={setSearch}
           placeholder="Find a task…"
           placeholderTextColor={theme.textSecondary}
           style={[styles.searchInput, { color: theme.text, fontFamily: Fonts.sans }]}
         />
       </View>
 
-      {TASK_CATEGORIES.map((category) => (
-        <View key={category.id} style={styles.category}>
-          <Text style={[styles.categoryName, { color: theme.text, fontFamily: Fonts.sans }]}>
-            {category.name}
-          </Text>
-          <View style={styles.taskList}>
-            {category.tasks.map((task) => (
-              <Pressable
-                key={task.id}
-                style={[
-                  styles.taskRow,
-                  {
-                    backgroundColor: task.selected ? theme.backgroundElement : theme.surface,
-                    borderColor: task.selected ? theme.brand : theme.border,
-                  },
-                ]}>
-                <View
-                  style={[
-                    styles.check,
-                    {
-                      borderColor: task.selected ? theme.brand : theme.border,
-                      backgroundColor: task.selected ? theme.brand : 'transparent',
-                    },
-                  ]}>
-                  {task.selected ? <Text style={styles.checkMark}>✓</Text> : null}
-                </View>
-                <Text style={[styles.taskTitle, { color: theme.text, fontFamily: Fonts.sans }]}>
-                  {task.title}
-                </Text>
-              </Pressable>
-            ))}
+      {TASK_CATEGORIES.map((category) => {
+        const tasks = category.tasks.filter((task) =>
+          query ? task.title.toLowerCase().includes(query) : true
+        );
+        if (tasks.length === 0) {
+          return null;
+        }
+
+        return (
+          <View key={category.id} style={styles.category}>
+            <Text style={[styles.categoryName, { color: theme.text, fontFamily: Fonts.sans }]}>
+              {category.name}
+            </Text>
+            <View style={styles.taskList}>
+              {tasks.map((task) => {
+                const selected = selectedSet.has(task.id);
+                return (
+                  <Pressable
+                    key={task.id}
+                    onPress={() => toggleTask(task.id)}
+                    style={[
+                      styles.taskRow,
+                      {
+                        backgroundColor: selected ? theme.backgroundElement : theme.surface,
+                        borderColor: selected ? theme.brand : theme.border,
+                      },
+                    ]}>
+                    <View
+                      style={[
+                        styles.check,
+                        {
+                          borderColor: selected ? theme.brand : theme.border,
+                          backgroundColor: selected ? theme.brand : 'transparent',
+                        },
+                      ]}>
+                      {selected ? <Text style={styles.checkMark}>✓</Text> : null}
+                    </View>
+                    <Text style={[styles.taskTitle, { color: theme.text, fontFamily: Fonts.sans }]}>
+                      {task.title}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
-        </View>
-      ))}
+        );
+      })}
 
-      <Link href="/home/tasks/confirm" asChild>
-        <AppButton label="Review selection" />
-      </Link>
-
-      <NetworkStateLinks
-        loadingHref="/home/tasks/loading"
-        emptyHref="/home/tasks/empty"
-        errorHref="/home/tasks/error"
+      <AppButton
+        label="Review selection"
+        loading={loading}
+        disabled={selectedIds.length === 0}
+        onPress={handleReview}
       />
     </AuthScreen>
   );

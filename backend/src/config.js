@@ -22,12 +22,12 @@ const config = {
 
     BCRYPT_SALT_ROUNDS: Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
 
-    SMTP_HOST: process.env.SMTP_HOST || "localhost",
-    SMTP_PORT: Number(process.env.SMTP_PORT) || 1025,
+    SMTP_HOST: process.env.SMTP_HOST || "smtp.gmail.com",
+    SMTP_PORT: Number(process.env.SMTP_PORT) || 465,
     SMTP_SECURE: process.env.SMTP_SECURE === "true",
     SMTP_USER: process.env.SMTP_USER || "",
-    SMTP_PASS: process.env.SMTP_PASS || "",
-    MAIL_FROM: process.env.SMTP_MAIL_FROM || "noreply@padosipro.local",
+    SMTP_PASS: (process.env.SMTP_PASS || "").replace(/\s+/g, ""),
+    MAIL_FROM: process.env.SMTP_MAIL_FROM || process.env.SMTP_USER || "",
 };
 
 module.exports = config;

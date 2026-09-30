@@ -4,6 +4,7 @@ const INDIAN_MOBILE_REGEX = /^[6-9]\d{9}$/;
 
 const userFields = {
     name: { type: "string", required: true },
+    email: { type: "string", required: true },
     mobile: { type: "string", required: true },
     address: { type: "string", required: true },
     businessName: { type: "string", required: false },
@@ -66,8 +67,14 @@ CREATE TABLE IF NOT EXISTS users (
     country_code VARCHAR(5) DEFAULT '+91',
     address TEXT,
     business_name VARCHAR(150),
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+`;
+
+const alterUsersTableSQL = `
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS is_verified BOOLEAN NOT NULL DEFAULT FALSE;
 `;
 
 module.exports = {
@@ -76,4 +83,5 @@ module.exports = {
     normalizeIndianMobile,
     validateUser,
     createUsersTableSQL,
+    alterUsersTableSQL,
 };

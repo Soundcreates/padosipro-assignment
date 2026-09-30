@@ -9,7 +9,6 @@ const sendMail = async () => {
     try {
         await sendOtpEmail(email);
         console.log("Email sent to:", email);
-        console.log("Check Mailpit UI: http://localhost:8025");
     } catch (err) {
         console.error("Error sending email:", err.message);
         process.exitCode = 1;

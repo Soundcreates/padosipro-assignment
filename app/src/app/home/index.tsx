@@ -1,17 +1,32 @@
-import { Link } from 'expo-router';
+import { Link, router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AuthScreen } from '@/components/ui/auth-screen';
 import { BrandMark } from '@/components/ui/brand-mark';
 import { AppButton } from '@/components/ui/button';
-import { NetworkStateLinks } from '@/components/ui/network-state-links';
-import { SELECTED_TASKS } from '@/constants/tasks';
+import type { TaskItem } from '@/constants/tasks';
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { getSelectedTasks } from '@/storage/tasksStorage';
 
-/** Post-auth home — lists selected tasks; no back button */
 export default function HomeScreen() {
   const theme = useTheme();
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      void getSelectedTasks().then((next) => {
+        if (!cancelled) {
+          setTasks(next);
+        }
+      });
+      return () => {
+        cancelled = true;
+      };
+    }, [])
+  );
 
   return (
     <AuthScreen>
@@ -31,45 +46,45 @@ export default function HomeScreen() {
           Your tasks
         </Text>
         <Text style={[styles.subtitle, { color: theme.textSecondary, fontFamily: Fonts.sans }]}>
-          Everything you picked after onboarding, ready for the day.
+          Today&apos;s picks. They reset after midnight so each day starts fresh.
         </Text>
       </View>
 
       <View style={[styles.list, { borderColor: theme.border, backgroundColor: theme.surface }]}>
-        {SELECTED_TASKS.map((task, index) => (
-          <View
-            key={task.id}
-            style={[
-              styles.row,
-              {
-                borderBottomColor: theme.border,
-                borderBottomWidth: index === SELECTED_TASKS.length - 1 ? 0 : StyleSheet.hairlineWidth,
-              },
-            ]}>
-            <View style={[styles.badge, { backgroundColor: theme.backgroundElement }]}>
-              <Text style={{ color: theme.brand, fontWeight: '700' }}>{index + 1}</Text>
-            </View>
-            <Text style={[styles.taskTitle, { color: theme.text, fontFamily: Fonts.sans }]}>
-              {task.title}
+        {tasks.length === 0 ? (
+          <View style={styles.row}>
+            <Text style={[styles.taskTitle, { color: theme.textSecondary, fontFamily: Fonts.sans }]}>
+              No tasks for today yet. Choose some to get started.
             </Text>
           </View>
-        ))}
+        ) : (
+          tasks.map((task, index) => (
+            <View
+              key={task.id}
+              style={[
+                styles.row,
+                {
+                  borderBottomColor: theme.border,
+                  borderBottomWidth: index === tasks.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                },
+              ]}>
+              <View style={[styles.badge, { backgroundColor: theme.backgroundElement }]}>
+                <Text style={{ color: theme.brand, fontWeight: '700' }}>{index + 1}</Text>
+              </View>
+              <Text style={[styles.taskTitle, { color: theme.text, fontFamily: Fonts.sans }]}>
+                {task.title}
+              </Text>
+            </View>
+          ))
+        )}
       </View>
 
       <View style={styles.actions}>
         <Link href="/home/tasks" asChild>
           <AppButton label="Edit tasks" variant="ghost" />
         </Link>
-        <Link href="/" asChild>
-          <AppButton label="Log out" variant="danger" />
-        </Link>
+        <AppButton label="Log out" variant="danger" onPress={() => router.replace('/')} />
       </View>
-
-      <NetworkStateLinks
-        loadingHref="/home/loading"
-        emptyHref="/home/empty"
-        errorHref="/home/error"
-      />
     </AuthScreen>
   );
 }

@@ -7,6 +7,8 @@ const { authenticate } = require("../middleware/authMiddleware");
 
 authRouter.post("/register", authController.register);
 authRouter.post("/login", authController.login);
+authRouter.post("/resend-otp", authController.resendOtp);
+authRouter.post("/verify-otp", authController.verifyOtp);
 authRouter.get("/me", authenticate, authController.me);
 
 module.exports = authRouter;

@@ -1,40 +1,67 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 const LENGTH = 6;
 
-/** Static OTP boxes — uncontrolled input overlay for typing UI only */
-export function OtpBoxes() {
+type OtpBoxesProps = {
+  value?: string;
+  onChangeText?: (value: string) => void;
+};
+
+export function OtpBoxes({ value, onChangeText }: OtpBoxesProps) {
   const theme = useTheme();
+  const inputRef = useRef<TextInput>(null);
+  const [internalValue, setInternalValue] = useState('');
+  const code = value ?? internalValue;
+
+  const handleChange = (next: string) => {
+    const digits = next.replace(/\D/g, '').slice(0, LENGTH);
+    if (value === undefined) {
+      setInternalValue(digits);
+    }
+    onChangeText?.(digits);
+  };
 
   return (
-    <View style={styles.wrap}>
+    <Pressable style={styles.wrap} onPress={() => inputRef.current?.focus()}>
       <View style={styles.row} pointerEvents="none">
-        {Array.from({ length: LENGTH }).map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.box,
-              {
-                borderColor: theme.border,
-                backgroundColor: theme.backgroundElement,
-              },
-            ]}>
-            <Text style={[styles.digit, { color: theme.text, fontFamily: Fonts.mono }]} />
-          </View>
-        ))}
+        {Array.from({ length: LENGTH }).map((_, index) => {
+          const digit = code[index] ?? '';
+          const isActive = index === code.length || (code.length === LENGTH && index === LENGTH - 1);
+
+          return (
+            <View
+              key={index}
+              style={[
+                styles.box,
+                {
+                  borderColor: isActive ? theme.brand : theme.border,
+                  backgroundColor: theme.backgroundElement,
+                },
+              ]}>
+              <Text style={[styles.digit, { color: theme.text, fontFamily: Fonts.mono }]}>
+                {digit}
+              </Text>
+            </View>
+          );
+        })}
       </View>
       <TextInput
-        defaultValue=""
+        ref={inputRef}
+        value={code}
+        onChangeText={handleChange}
         keyboardType="number-pad"
         textContentType="oneTimeCode"
+        autoComplete="sms-otp"
         maxLength={LENGTH}
-        style={styles.hiddenInput}
+        autoFocus
         caretHidden
+        style={styles.hiddenInput}
       />
-    </View>
+    </Pressable>
   );
 }
 
@@ -63,8 +90,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   hiddenInput: {
-    ...StyleSheet.absoluteFill,
-    opacity: 0.02,
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.01,
     color: 'transparent',
   },
 });

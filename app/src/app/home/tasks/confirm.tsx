@@ -1,16 +1,40 @@
-import { Link } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AuthHeader } from '@/components/ui/auth-header';
 import { AuthScreen } from '@/components/ui/auth-screen';
 import { AppButton } from '@/components/ui/button';
-import { NetworkStateLinks } from '@/components/ui/network-state-links';
-import { SELECTED_TASKS } from '@/constants/tasks';
+import type { TaskItem } from '@/constants/tasks';
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { getPendingTasks, saveSelectedTaskIds } from '@/storage/tasksStorage';
 
 export default function TasksConfirmScreen() {
   const theme = useTheme();
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      void getPendingTasks().then((next) => {
+        if (!cancelled) {
+          setTasks(next);
+        }
+      });
+      return () => {
+        cancelled = true;
+      };
+    }, [])
+  );
+
+  const handleSave = async () => {
+    setSaving(true);
+    await saveSelectedTaskIds(tasks.map((task) => task.id));
+    setSaving(false);
+    router.replace('/home');
+  };
 
   return (
     <AuthScreen>
@@ -20,37 +44,38 @@ export default function TasksConfirmScreen() {
           Confirm tasks
         </Text>
         <Text style={[styles.subtitle, { color: theme.textSecondary, fontFamily: Fonts.sans }]}>
-          These will appear on your home screen after you save.
+          These will appear on your home screen for today. They clear after midnight.
         </Text>
       </View>
 
       <View style={[styles.list, { borderColor: theme.border, backgroundColor: theme.surface }]}>
-        {SELECTED_TASKS.map((task) => (
-          <View
-            key={task.id}
-            style={[styles.row, { borderBottomColor: theme.border }]}>
-            <View style={[styles.dot, { backgroundColor: theme.brand }]} />
-            <Text style={[styles.taskTitle, { color: theme.text, fontFamily: Fonts.sans }]}>
-              {task.title}
+        {tasks.length === 0 ? (
+          <View style={styles.row}>
+            <Text style={[styles.taskTitle, { color: theme.textSecondary, fontFamily: Fonts.sans }]}>
+              No tasks selected yet.
             </Text>
           </View>
-        ))}
+        ) : (
+          tasks.map((task) => (
+            <View key={task.id} style={[styles.row, { borderBottomColor: theme.border }]}>
+              <View style={[styles.dot, { backgroundColor: theme.brand }]} />
+              <Text style={[styles.taskTitle, { color: theme.text, fontFamily: Fonts.sans }]}>
+                {task.title}
+              </Text>
+            </View>
+          ))
+        )}
       </View>
 
       <View style={styles.actions}>
-        <Link href="/home" asChild>
-          <AppButton label="Save tasks" />
-        </Link>
-        <Link href="/home/tasks" asChild>
-          <AppButton label="Edit selection" variant="ghost" />
-        </Link>
+        <AppButton
+          label="Save tasks"
+          loading={saving}
+          disabled={tasks.length === 0}
+          onPress={handleSave}
+        />
+        <AppButton label="Edit selection" variant="ghost" onPress={() => router.back()} />
       </View>
-
-      <NetworkStateLinks
-        loadingHref="/home/tasks/confirm-loading"
-        emptyHref="/home/tasks/confirm-empty"
-        errorHref="/home/tasks/confirm-error"
-      />
     </AuthScreen>
   );
 }

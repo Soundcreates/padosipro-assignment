@@ -1,6 +1,6 @@
 //code by shantanav mukherjee written on 30/09/2026
 
-const bcrypt =require("bcrypt");
+const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const { redisClient } = require("./redis");
 const config = require("../config");
@@ -54,12 +54,11 @@ async function sendOtpEmail(email) {
     const transporter = createTransporter();
 
 
-    //i think will be putting a payload object in the otpkey cache , cuz it will be better
     const otpCachePayload = {
-        otp: await hashOtp(otp),
+        otp: hashOtp(otp),
         attempts: 0,
     };
-    await redisClient.set(otpKey(email),  otpCachePayload, { EX: 10 * 60 });
+    await redisClient.set(otpKey(email), JSON.stringify(otpCachePayload), { EX: 10 * 60 });
     await redisClient.set(cooldownKey(email), "1", { EX: 60 });
 
     await transporter.sendMail({
@@ -79,46 +78,64 @@ async function sendOtpEmail(email) {
 }
 
 const resendOtpEmail = async (email) => {
-    if(!email || typeof email !== "string" || email.trim() ==="") {
+    if (!email || typeof email !== "string" || email.trim() === "") {
         throw new Error("Invalid email");
     }
-    
-    if(!redisClient.isOpen){
-        await redisClient.connectRedis();
+
+    try {
+        await sendOtpEmail(email);
+        return { ok: true, message: "OTP resent successfully" };
+    } catch (error) {
+        if (error.message === "Email is on cooldown") {
+            return { ok: false, message: "Please wait before requesting another code" };
+        }
+        throw error;
     }
-    const cooldown = await redisClient.get(cooldownKey(email));
-    if(cooldown || cooldown > 0){
-        return {ok: false, message: "Email is on cooldown"};
-    }
-    await sendOtpEmail(email);
-    return {ok: true, message: "OTP resent successfully"};
-
-
-
-}
+};
 
 const checkRedisConnection = async () => {
-    if(!redisClient.isOpen){
-        await redisClient.connectRedis();
+    if (!redisClient.isOpen) {
+        await redisClient.connect();
     }
-}
+};
+
 const verifyOtp = async (email, givenOtp) => {
     await checkRedisConnection();
-    const hashedOtp = await redisClient.get(otpKey(email).otp);
-    if(!compareOtp(givenOtp,hashedOtp)){
-        const attempts = await redisClient.get(otpKey(email).attempts);
-        if(attempts==5){
-            return {ok: false, message: "This is your last attempt"};
-        }
-        if(attempts > 5) {
-            return {ok: false, message: "Too many attempts, please try again later"};
-        }
-        await redisClient.set(otpKey(email).attempts, attempts+1,{keepttl:true}); 
-        return  {ok: false, message: "Invalid OTP"};       
+    const raw = await redisClient.get(otpKey(email));
+    if (!raw) {
+        return { ok: false, message: "OTP expired or not found" };
     }
+
+    let payload;
+    try {
+        payload = JSON.parse(raw);
+    } catch {
+        return { ok: false, message: "Invalid OTP data" };
+    }
+
+    const hashedGiven = hashOtp(givenOtp);
+    if (hashedGiven !== payload.otp) {
+        const attempts = Number(payload.attempts || 0) + 1;
+        if (attempts > 5) {
+            await redisClient.del(otpKey(email));
+            return { ok: false, message: "Too many attempts, please try again later" };
+        }
+        payload.attempts = attempts;
+        const ttl = await redisClient.ttl(otpKey(email));
+        if (ttl > 0) {
+            await redisClient.set(otpKey(email), JSON.stringify(payload), { EX: ttl });
+        } else {
+            await redisClient.set(otpKey(email), JSON.stringify(payload), { EX: 10 * 60 });
+        }
+        if (attempts === 5) {
+            return { ok: false, message: "This is your last attempt" };
+        }
+        return { ok: false, message: "Invalid OTP" };
+    }
+
     await redisClient.del(otpKey(email));
-    return {ok: true, message: "OTP verified successfully"};
-}
+    return { ok: true, message: "OTP verified successfully" };
+};
 
 
 

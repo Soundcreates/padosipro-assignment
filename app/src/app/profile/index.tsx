@@ -1,15 +1,52 @@
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { fetchMe, logout } from '@/api/auth';
+import { peekCachedUser, type CachedUser } from '@/cache/authCache';
 import { AuthScreen } from '@/components/ui/auth-screen';
 import { BrandMark } from '@/components/ui/brand-mark';
 import { AppButton } from '@/components/ui/button';
-import { NetworkStateLinks } from '@/components/ui/network-state-links';
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+function displayValue(value?: string | null) {
+  if (!value || value.trim() === '') {
+    return '—';
+  }
+  return value;
+}
+
 export default function ProfileScreen() {
   const theme = useTheme();
+  const [user, setUser] = useState<CachedUser | null>(() => peekCachedUser()?.value ?? null);
+
+  useEffect(() => {
+    const peeked = peekCachedUser();
+    if (peeked) {
+      setUser(peeked.value);
+      if (!peeked.isExpired) {
+        return;
+      }
+    }
+
+    let cancelled = false;
+    void fetchMe().then((result) => {
+      if (cancelled || !result.ok) {
+        return;
+      }
+      setUser(result.user);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    router.replace('/');
+  };
 
   return (
     <AuthScreen>
@@ -30,26 +67,22 @@ export default function ProfileScreen() {
       </View>
 
       <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <ProfileRow label="Name" value="Asha Verma" />
-        <ProfileRow label="Mobile number" value="+91 98765 43210" />
-        <ProfileRow label="Address" value="14 Lake View Road, Pune" />
-        <ProfileRow label="Business name" value="Lakeview Grocers" last />
+        <ProfileRow label="Name" value={displayValue(user?.name)} />
+        <ProfileRow
+          label="Mobile number"
+          value={user?.mobile ? `${user.country_code ?? '+91'} ${user.mobile}` : '—'}
+        />
+        <ProfileRow label="Email" value={displayValue(user?.email)} />
+        <ProfileRow label="Address" value={displayValue(user?.address)} />
+        <ProfileRow label="Business name" value={displayValue(user?.business_name)} last />
       </View>
 
       <View style={styles.actions}>
         <Link href="/profile/setup" asChild>
           <AppButton label="Edit profile" variant="ghost" />
         </Link>
-        <Link href="/" asChild>
-          <AppButton label="Log out" variant="danger" />
-        </Link>
+        <AppButton label="Log out" variant="danger" onPress={handleLogout} />
       </View>
-
-      <NetworkStateLinks
-        loadingHref="/profile/loading"
-        emptyHref="/profile/empty"
-        errorHref="/profile/error"
-      />
     </AuthScreen>
   );
 }
