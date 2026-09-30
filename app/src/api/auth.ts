@@ -26,7 +26,8 @@ type MeResult =
   | { ok: true; user: CachedUser }
   | { ok: false; error: string };
 
-const API_URL = 'https://kisha-volcanologic-motherly.ngrok-free.dev';
+const API_URL =
+  process.env.EXPO_PUBLIC_API_URL ?? 'https://kisha-volcanologic-motherly.ngrok-free.dev';
 
 const defaultHeaders = {
   'Content-Type': 'application/json',

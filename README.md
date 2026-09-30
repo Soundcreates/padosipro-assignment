@@ -7,90 +7,92 @@ Neighborhood task helper: Expo (React Native) mobile app + Express API, Postgres
 - Node.js 22+
 - npm
 - Docker + Docker Compose
-- Expo Go (device) **or** Xcode / Android Studio for simulators
-- Gmail account with an [App Password](https://support.google.com/accounts/answer/185833) for OTP email (or another SMTP provider)
+- Expo Go **or** Xcode / Android Studio for simulators
+- [ngrok](https://ngrok.com/) CLI (for testing the API from a physical device)
+- Gmail App Password (or other SMTP) for OTP email
 
-## Environment variables
+## Startup
 
-Copy the example file and fill in real values locally. **Never commit secrets.**
+Use **3 terminals** from the repo root.
+
+### 1. Backend stack (Postgres, Redis, API)
 
 ```bash
 cp backend/.env.example backend/.env
+# fill SMTP_* values in backend/.env
+
+docker compose up --build
 ```
+
+API: `http://localhost:3003`
+
+### 2. ngrok (physical device / Expo Go)
+
+```bash
+ngrok http 3003
+```
+
+Copy the HTTPS forwarding URL (e.g. `https://abc123.ngrok-free.dev`).
+
+Simulator on the same machine can often use `http://localhost:3003` or your LAN IP instead.
+
+### 3. Mobile app
+
+```bash
+cp app/.env.example app/.env
+# set EXPO_PUBLIC_API_URL to the ngrok HTTPS URL (or local API URL)
+
+cd app
+npm install
+npx expo start
+```
+
+Then open iOS Simulator (`i`), Android emulator (`a`), or scan the QR code with Expo Go.
+
+### Happy path
+
+Register → enter OTP from email → confirm profile → choose daily tasks → home.
+
+## Environment variables
+
+**Never commit secrets.**
+
+### `backend/.env`
 
 | Variable | Purpose |
 | --- | --- |
-| `SMTP_USER` / `SMTP_PASS` | SMTP auth (e.g. Gmail + app password) |
+| `SMTP_USER` / `SMTP_PASS` | SMTP auth |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` | SMTP connection |
-| `SMTP_MAIL_FROM` | From address for OTP emails |
-| `DATABASE_URL` | Postgres connection (set automatically in Docker) |
-| `REDIS_URL` | Redis connection (set automatically in Docker) |
-| `JWT_SECRET` / `JWT_EXPIRES_IN` | Auth token signing |
-| `BCRYPT_SALT_ROUNDS` | Password hashing cost |
+| `SMTP_MAIL_FROM` | From address for OTPs |
+| `DATABASE_URL` | Postgres (overridden by Compose) |
+| `REDIS_URL` | Redis (overridden by Compose) |
+| `JWT_SECRET` / `JWT_EXPIRES_IN` | Auth tokens |
+| `BCRYPT_SALT_ROUNDS` | Password hashing |
 | `PORT` | API port (default `3003`) |
 
-For the mobile app, set the API base URL in `app/src/api/auth.ts` (use your machine LAN IP, or an ngrok HTTPS URL when testing on a physical device).
+### `app/.env`
 
-## Backend setup
+| Variable | Purpose |
+| --- | --- |
+| `EXPO_PUBLIC_API_URL` | API base URL (ngrok HTTPS or local) |
 
-From the repo root:
-
-```bash
-# start Postgres, Redis, and API
-docker compose up --build
-
-# optional: wipe DB volumes and start clean
-docker compose down -v && docker compose up --build
-```
-
-The API listens on `http://localhost:3003`. Migrations run on startup.
-
-Run backend tests:
+## Backend tests
 
 ```bash
 cd backend
 npm test
 ```
 
-## Mobile app setup
+## Build an Android APK
 
 ```bash
 cd app
 npm install
-npx expo start
-```
-
-Then open in Expo Go, or press `i` / `a` for simulators.
-
-If you use a tunnel for the API:
-
-```bash
-ngrok http 3003
-```
-
-Update `API_URL` in `app/src/api/auth.ts` to the ngrok HTTPS URL.
-
-## How to run (full stack)
-
-1. Copy `backend/.env.example` → `backend/.env` and set SMTP credentials.
-2. `docker compose up --build` from the repo root.
-3. `cd app && npm install && npx expo start`.
-4. Point the app `API_URL` at the running API.
-5. Register → verify OTP from email → confirm profile → pick daily tasks.
-
-## Build an Android APK
-
-From `app/`:
-
-```bash
-npm install
-npx eas-cli login          # first time only
+npx eas-cli login
 npx eas build -p android --profile preview
 ```
 
-If you do not use EAS yet, create a minimal `eas.json` with a `preview` profile that produces an APK, then run the command above. Download the APK from the EAS build page when it finishes.
-
-Local alternative (requires Android SDK):
+Local alternative (Android SDK required):
 
 ```bash
 cd app
