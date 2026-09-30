@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { TASK_CATEGORIES, type TaskItem } from '@/constants/tasks';
 
 const DAILY_TASKS_KEY = 'tasks_daily';
@@ -28,14 +29,14 @@ export function resolveTasksByIds(taskIds: string[]): TaskItem[] {
 }
 
 async function readDailyPayload(): Promise<DailyTasksPayload | null> {
-  const raw = await SecureStore.getItemAsync(DAILY_TASKS_KEY);
+  const raw = await AsyncStorage.getItem(DAILY_TASKS_KEY);
   if (!raw) {
     return null;
   }
   try {
     return JSON.parse(raw) as DailyTasksPayload;
   } catch {
-    await SecureStore.deleteItemAsync(DAILY_TASKS_KEY);
+    await AsyncStorage.removeItem(DAILY_TASKS_KEY);
     return null;
   }
 }
@@ -48,8 +49,7 @@ export async function clearDailyTasksIfNewDay(): Promise<boolean> {
   if (payload.date === getLocalDateKey()) {
     return false;
   }
-  await SecureStore.deleteItemAsync(DAILY_TASKS_KEY);
-  await SecureStore.deleteItemAsync(PENDING_TASKS_KEY);
+  await AsyncStorage.multiRemove([DAILY_TASKS_KEY, PENDING_TASKS_KEY]);
   return true;
 }
 
@@ -69,16 +69,16 @@ export async function saveSelectedTaskIds(taskIds: string[]): Promise<void> {
     date: getLocalDateKey(),
     taskIds: [...new Set(taskIds)],
   };
-  await SecureStore.setItemAsync(DAILY_TASKS_KEY, JSON.stringify(payload));
-  await SecureStore.deleteItemAsync(PENDING_TASKS_KEY);
+  await AsyncStorage.setItem(DAILY_TASKS_KEY, JSON.stringify(payload));
+  await AsyncStorage.removeItem(PENDING_TASKS_KEY);
 }
 
 export async function setPendingTaskIds(taskIds: string[]): Promise<void> {
-  await SecureStore.setItemAsync(PENDING_TASKS_KEY, JSON.stringify([...new Set(taskIds)]));
+  await AsyncStorage.setItem(PENDING_TASKS_KEY, JSON.stringify([...new Set(taskIds)]));
 }
 
 export async function getPendingTaskIds(): Promise<string[]> {
-  const raw = await SecureStore.getItemAsync(PENDING_TASKS_KEY);
+  const raw = await AsyncStorage.getItem(PENDING_TASKS_KEY);
   if (!raw) {
     return getSelectedTaskIds();
   }

@@ -4,7 +4,7 @@
 
 PadosiPro is a small full-stack product:
 
-- **Mobile client** (`app/`): Expo Router screens for auth, OTP, profile, and daily task selection. Auth/user snapshots sit in an in-memory cache; today’s selected tasks persist with SecureStore and are keyed by local calendar date.
+- **Mobile client** (`app/`): Expo Router screens for auth, OTP, profile, and daily task selection. Auth/user snapshots sit in an in-memory cache; today’s selected tasks persist with AsyncStorage and are keyed by local calendar date.
 - **API** (`backend/`): Express routes under `/api/auth` for register, login, resend/verify OTP, and `me`. Passwords are bcrypt-hashed; sessions are JWTs.
 - **Data stores**: Postgres holds users; Redis stores hashed OTPs, attempt counts, and send cooldowns. SMTP (real mail) delivers OTP codes.
 
@@ -13,7 +13,7 @@ Flow: register → email OTP → verify → confirm profile details → choose t
 ## Main trade-offs
 
 - **In-memory user cache vs always hitting `/me`**: faster profile UI after login/register, but cache dies on app restart and must be refreshed when TTL expires.
-- **SecureStore for tasks instead of AsyncStorage**: works in Expo Go without a custom native rebuild; fine for small task-id lists, not a general KV store.
+- **AsyncStorage for daily tasks**: simple on-device persistence for small task-id lists; midnight reset is local-calendar keyed, not synced across devices.
 - **OTP hashed in Redis, not plaintext**: safer if Redis is exposed, at the cost of not being able to recover the original code server-side.
 - **Dockerized API + local Expo client**: simple backend parity, but physical devices need ngrok/LAN wiring for HTTPS/HTTP reachability.
 - **Pure auth/OTP rule module for tests**: unit-tests the risky decisions without standing up Redis/Postgres for every case.

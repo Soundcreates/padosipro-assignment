@@ -20,11 +20,22 @@ function cooldownKey(email) {
     return `otp:cooldown:${email}`;
 }
 
-function createTransporter() {
+const RESEND_COOLDOWN_SECONDS = 60;
+
+let transporter;
+
+function getTransporter() {
+    if (transporter) {
+        return transporter;
+    }
+
     const options = {
         host: config.SMTP_HOST,
         port: config.SMTP_PORT,
         secure: config.SMTP_SECURE,
+        pool: true,
+        maxConnections: 1,
+        maxMessages: 50,
     };
 
     if (config.SMTP_USER) {
@@ -34,7 +45,27 @@ function createTransporter() {
         };
     }
 
-    return nodemailer.createTransport(options);
+    transporter = nodemailer.createTransport(options);
+    return transporter;
+}
+
+function queueOtpMail(email, otp) {
+    getTransporter()
+        .sendMail({
+            from: config.MAIL_FROM,
+            to: email,
+            subject: "Your verification code",
+            text: `Your OTP is ${otp}. It expires in 10 minutes.`,
+            html: `
+          <h2>Email Verification</h2>
+          <p>Your verification code is:</p>
+          <h1>${otp}</h1>
+          <p>This code expires in 10 minutes.</p>
+        `,
+        })
+        .catch((err) => {
+            console.error("Failed to send OTP email:", err.message);
+        });
 }
 
 async function sendOtpEmail(email) {
@@ -50,25 +81,13 @@ async function sendOtpEmail(email) {
     }
 
     const otp = generateOtp();
-    const transporter = createTransporter();
 
     await redisClient.set(otpKey(email), JSON.stringify(createOtpPayload(otp)), {
         EX: OTP_TTL_SECONDS,
     });
-    await redisClient.set(cooldownKey(email), "1", { EX: 60 });
+    await redisClient.set(cooldownKey(email), "1", { EX: RESEND_COOLDOWN_SECONDS });
 
-    await transporter.sendMail({
-        from: config.MAIL_FROM,
-        to: email,
-        subject: "Your verification code",
-        text: `Your OTP is ${otp}. It expires in 10 minutes.`,
-        html: `
-          <h2>Email Verification</h2>
-          <p>Your verification code is:</p>
-          <h1>${otp}</h1>
-          <p>This code expires in 10 minutes.</p>
-        `,
-    });
+    queueOtpMail(email, otp);
 
     return { ok: true, email, true_otp: otp };
 }

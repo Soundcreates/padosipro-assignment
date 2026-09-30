@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { resendOtp, verifyOtp } from '@/api/auth';
@@ -9,6 +9,8 @@ import { AppButton } from '@/components/ui/button';
 import { OtpBoxes } from '@/components/ui/otp-boxes';
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+
+const RESEND_COOLDOWN_SECONDS = 60;
 
 export default function OtpScreen() {
   const theme = useTheme();
@@ -25,8 +27,22 @@ export default function OtpScreen() {
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [otp, setOtp] = useState('');
+  const [secondsLeft, setSecondsLeft] = useState(RESEND_COOLDOWN_SECONDS);
+
+  useEffect(() => {
+    if (secondsLeft <= 0) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      setSecondsLeft((prev) => prev - 1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [secondsLeft]);
 
   const handleResend = async () => {
+    if (secondsLeft > 0 || loading) {
+      return;
+    }
     if (!email) {
       setError('Missing email. Go back and register again.');
       return;
@@ -43,6 +59,7 @@ export default function OtpScreen() {
       return;
     }
 
+    setSecondsLeft(RESEND_COOLDOWN_SECONDS);
     setMessage(result.message);
   };
 
@@ -108,9 +125,25 @@ export default function OtpScreen() {
 
       <View style={styles.actions}>
         <AppButton label="Verify code" loading={verifying} onPress={handleVerify} />
-        <Pressable style={styles.resend} onPress={handleResend} disabled={loading}>
-          <Text style={[styles.resendText, { color: theme.brand, fontFamily: Fonts.sans }]}>
-            {loading ? 'Sending…' : 'Resend code'}
+        <Pressable
+          style={styles.resend}
+          onPress={handleResend}
+          disabled={loading || secondsLeft > 0}
+        >
+          <Text
+            style={[
+              styles.resendText,
+              {
+                color: secondsLeft > 0 || loading ? theme.textSecondary : theme.brand,
+                fontFamily: Fonts.sans,
+              },
+            ]}
+          >
+            {loading
+              ? 'Sending…'
+              : secondsLeft > 0
+                ? `Resend in ${secondsLeft}s`
+                : 'Resend code'}
           </Text>
         </Pressable>
       </View>
