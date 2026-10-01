@@ -1,4 +1,3 @@
-import Svg, { Circle, G, Path } from 'react-native-svg';
 import { StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
@@ -7,85 +6,161 @@ type FlowerCornerProps = {
   size?: number;
 };
 
+function Bloom({
+  size,
+  color,
+  style,
+}: {
+  size: number;
+  color: string;
+  style?: object;
+}) {
+  const petal = size * 0.38;
+  const center = size * 0.28;
+  const offsets = [
+    { top: 0, left: size / 2 - petal / 2 },
+    { top: size * 0.18, left: size * 0.62 },
+    { top: size * 0.52, left: size * 0.62 },
+    { top: size * 0.7, left: size / 2 - petal / 2 },
+    { top: size * 0.52, left: size * 0.02 },
+    { top: size * 0.18, left: size * 0.02 },
+  ];
+
+  return (
+    <View style={[{ width: size, height: size }, style]}>
+      {offsets.map((pos, i) => (
+        <View
+          key={i}
+          style={{
+            position: 'absolute',
+            top: pos.top,
+            left: pos.left,
+            width: petal,
+            height: petal,
+            borderRadius: petal,
+            backgroundColor: color,
+            opacity: 0.42,
+          }}
+        />
+      ))}
+      <View
+        style={{
+          position: 'absolute',
+          top: size / 2 - center / 2,
+          left: size / 2 - center / 2,
+          width: center,
+          height: center,
+          borderRadius: center,
+          backgroundColor: color,
+          opacity: 0.7,
+        }}
+      />
+    </View>
+  );
+}
+
+function Leaf({
+  width,
+  height,
+  color,
+  style,
+}: {
+  width: number;
+  height: number;
+  color: string;
+  style?: object;
+}) {
+  return (
+    <View
+      style={[
+        {
+          width,
+          height,
+          borderRadius: height,
+          backgroundColor: color,
+          opacity: 0.22,
+          transform: [{ rotate: '-28deg' }],
+        },
+        style,
+      ]}
+    />
+  );
+}
+
 export function FlowerCorner({ size = 280 }: FlowerCornerProps) {
   const theme = useTheme();
+  const scale = size / 280;
 
   return (
     <View pointerEvents="none" style={[styles.base, { width: size, height: size }]}>
-      <Svg width={size} height={size} viewBox="0 0 240 240">
-        <G>
-          <Path
-            d="M235 5 C190 30 160 55 150 90 C140 128 155 150 130 180 C112 203 95 212 65 232"
-            stroke={theme.brand}
-            strokeOpacity={0.4}
-            strokeWidth={3}
-            fill="none"
-            strokeLinecap="round"
-          />
-          <Path
-            d="M172 70 C190 72 205 64 214 48"
-            stroke={theme.brand}
-            strokeOpacity={0.3}
-            strokeWidth={2}
-            fill="none"
-            strokeLinecap="round"
-          />
-          <Path
-            d="M205 20 C222 12 236 18 242 32 C226 38 210 34 205 20 Z"
-            fill={theme.brand}
-            fillOpacity={0.26}
-          />
-          <Path
-            d="M168 48 C182 32 204 28 220 38 C206 54 182 56 168 48 Z"
-            fill={theme.brand}
-            fillOpacity={0.22}
-          />
-          <Path
-            d="M145 105 C156 88 178 82 196 90 C184 108 160 116 145 105 Z"
-            fill={theme.brand}
-            fillOpacity={0.2}
-          />
-          <Path
-            d="M152 155 C160 138 180 130 198 136 C188 154 166 164 152 155 Z"
-            fill={theme.brand}
-            fillOpacity={0.18}
-          />
-          <Path
-            d="M108 190 C114 172 134 163 152 168 C144 186 122 197 108 190 Z"
-            fill={theme.brand}
-            fillOpacity={0.16}
-          />
-          <G transform="translate(214 30)">
-            <Circle r="12" cx="0" cy="-19" fill={theme.brand} fillOpacity={0.45} />
-            <Circle r="12" cx="16" cy="-9" fill={theme.brand} fillOpacity={0.45} />
-            <Circle r="12" cx="16" cy="10" fill={theme.brand} fillOpacity={0.45} />
-            <Circle r="12" cx="0" cy="20" fill={theme.brand} fillOpacity={0.45} />
-            <Circle r="12" cx="-16" cy="10" fill={theme.brand} fillOpacity={0.45} />
-            <Circle r="12" cx="-16" cy="-9" fill={theme.brand} fillOpacity={0.45} />
-            <Circle r="8" cx="0" cy="0" fill={theme.brand} fillOpacity={0.7} />
-          </G>
-          <G transform="translate(163 108)">
-            <Circle r="9" cx="0" cy="-14" fill={theme.brand} fillOpacity={0.4} />
-            <Circle r="9" cx="12" cy="-6" fill={theme.brand} fillOpacity={0.4} />
-            <Circle r="9" cx="12" cy="8" fill={theme.brand} fillOpacity={0.4} />
-            <Circle r="9" cx="0" cy="16" fill={theme.brand} fillOpacity={0.4} />
-            <Circle r="9" cx="-12" cy="8" fill={theme.brand} fillOpacity={0.4} />
-            <Circle r="9" cx="-12" cy="-6" fill={theme.brand} fillOpacity={0.4} />
-            <Circle r="6" cx="0" cy="0" fill={theme.brand} fillOpacity={0.65} />
-          </G>
-          <G transform="translate(118 178)">
-            <Circle r="6" cx="0" cy="-10" fill={theme.brand} fillOpacity={0.35} />
-            <Circle r="6" cx="9" cy="-4" fill={theme.brand} fillOpacity={0.35} />
-            <Circle r="6" cx="9" cy="6" fill={theme.brand} fillOpacity={0.35} />
-            <Circle r="6" cx="0" cy="11" fill={theme.brand} fillOpacity={0.35} />
-            <Circle r="6" cx="-9" cy="6" fill={theme.brand} fillOpacity={0.35} />
-            <Circle r="6" cx="-9" cy="-4" fill={theme.brand} fillOpacity={0.35} />
-            <Circle r="4" cx="0" cy="0" fill={theme.brand} fillOpacity={0.6} />
-          </G>
-          <Circle cx="78" cy="214" r="5" fill={theme.brand} fillOpacity={0.4} />
-          <Circle cx="92" cy="202" r="3.5" fill={theme.brand} fillOpacity={0.32} />
-        </G>
-      </Svg>
+      <View
+        style={[
+          styles.vine,
+          {
+            backgroundColor: theme.brand,
+            height: size * 0.82,
+            right: size * 0.28,
+            top: size * 0.04,
+          },
+        ]}
+      />
+      <Leaf
+        width={48 * scale}
+        height={18 * scale}
+        color={theme.brand}
+        style={{ position: 'absolute', top: 28 * scale, right: 70 * scale }}
+      />
+      <Leaf
+        width={42 * scale}
+        height={16 * scale}
+        color={theme.brand}
+        style={{ position: 'absolute', top: 90 * scale, right: 95 * scale }}
+      />
+      <Leaf
+        width={38 * scale}
+        height={14 * scale}
+        color={theme.brand}
+        style={{ position: 'absolute', top: 150 * scale, right: 120 * scale }}
+      />
+      <Bloom
+        size={54 * scale}
+        color={theme.brand}
+        style={{ position: 'absolute', top: 8 * scale, right: 8 * scale }}
+      />
+      <Bloom
+        size={40 * scale}
+        color={theme.brand}
+        style={{ position: 'absolute', top: 88 * scale, right: 58 * scale }}
+      />
+      <Bloom
+        size={28 * scale}
+        color={theme.brand}
+        style={{ position: 'absolute', top: 160 * scale, right: 110 * scale }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          top: 210 * scale,
+          right: 150 * scale,
+          width: 10 * scale,
+          height: 10 * scale,
+          borderRadius: 10 * scale,
+          backgroundColor: theme.brand,
+          opacity: 0.4,
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          top: 198 * scale,
+          right: 132 * scale,
+          width: 7 * scale,
+          height: 7 * scale,
+          borderRadius: 7 * scale,
+          backgroundColor: theme.brand,
+          opacity: 0.3,
+        }}
+      />
     </View>
   );
 }
@@ -95,5 +170,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -14,
     right: -28,
+  },
+  vine: {
+    position: 'absolute',
+    width: 3,
+    borderRadius: 3,
+    opacity: 0.35,
+    transform: [{ rotate: '18deg' }],
   },
 });
