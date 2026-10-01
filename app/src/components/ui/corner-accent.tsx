@@ -3,11 +3,6 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 
-/**
- * Tiny speckle of soft dots tucked in the bottom-left corner — just enough
- * texture to balance the heavier top-right vine, without competing with the
- * primary actions that live in that area.
- */
 export function CornerAccent() {
   const theme = useTheme();
 

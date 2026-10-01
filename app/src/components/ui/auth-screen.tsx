@@ -2,25 +2,25 @@ import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, View, type ViewProps } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AmbientDots } from '@/components/ui/ambient-dots';
+import { CornerAccent } from '@/components/ui/corner-accent';
+import { FlowerCorner } from '@/components/ui/flower-corner';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { FlowerCorner } from '@/components/ui/flower-corner';
-import { CornerAccent } from '@/components/ui/corner-accent';
-import { AmbientDots } from '@/components/ui/ambient-dots';
 
 export type AuthScreenProps = ViewProps & {
   children: ReactNode;
   footer?: ReactNode;
-  /**
-   * `true` — full welcome treatment (vine + ambient dots + corner accent).
-   * `"subtle"` — just ambient dots + corner accent, for form-heavy screens
-   * where a big vine would compete with inputs.
-   * `false` — no decoration.
-   */
   decorated?: boolean | 'subtle';
 };
 
-export function AuthScreen({ children, footer, style, decorated = false, ...rest }: AuthScreenProps) {
+export function AuthScreen({
+  children,
+  footer,
+  style,
+  decorated = 'subtle',
+  ...rest
+}: AuthScreenProps) {
   const theme = useTheme();
 
   return (
@@ -28,7 +28,7 @@ export function AuthScreen({ children, footer, style, decorated = false, ...rest
       {decorated ? (
         <>
           <AmbientDots />
-          {decorated === true ? <FlowerCorner /> : null}
+          <FlowerCorner size={decorated === true ? 280 : 200} />
           <CornerAccent />
         </>
       ) : null}

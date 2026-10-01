@@ -1,7 +1,6 @@
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 import { login } from '@/api/auth';
 import { AuthHeader } from '@/components/ui/auth-header';
@@ -46,8 +45,8 @@ export default function LoginScreen() {
   };
 
   return (
-    <AuthScreen decorated="subtle">
-      <Animated.View entering={FadeInDown.duration(450).springify().damping(16)} style={styles.header}>
+    <AuthScreen>
+      <View style={styles.header}>
         <AuthHeader />
         <Text style={[styles.title, { color: theme.text, fontFamily: Fonts.serif ?? Fonts.sans }]}>
           Welcome back
@@ -55,11 +54,9 @@ export default function LoginScreen() {
         <Text style={[styles.subtitle, { color: theme.textSecondary, fontFamily: Fonts.sans }]}>
           Sign in with the email you used to register.
         </Text>
-      </Animated.View>
+      </View>
 
-      <Animated.View
-        entering={FadeInUp.duration(450).delay(100).springify().damping(16)}
-        style={styles.form}>
+      <View style={styles.form}>
         <TextField
           label="Email"
           value={formData.email}
@@ -78,24 +75,20 @@ export default function LoginScreen() {
           autoComplete="password"
         />
         {error ? <Text style={styles.error}>{error}</Text> : null}
-      </Animated.View>
+      </View>
 
-      <Animated.View
-        entering={FadeInUp.duration(450).delay(180).springify().damping(16)}
-        style={styles.actions}>
+      <View style={styles.actions}>
         <AppButton label="Sign in" loading={loading} onPress={handleLogin} />
-      </Animated.View>
+      </View>
 
-      <Animated.View
-        entering={FadeInUp.duration(450).delay(240).springify().damping(16)}
-        style={styles.footerRow}>
+      <View style={styles.footerRow}>
         <Text style={[styles.footerText, { color: theme.textSecondary }]}>New here?</Text>
         <Link href="/auth/register" asChild>
           <Pressable>
             <Text style={[styles.footerLink, { color: theme.brand }]}>Create an account</Text>
           </Pressable>
         </Link>
-      </Animated.View>
+      </View>
     </AuthScreen>
   );
 }

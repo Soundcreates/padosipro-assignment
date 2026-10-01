@@ -8,6 +8,7 @@ const PENDING_TASKS_KEY = 'tasks_pending';
 type DailyTasksPayload = {
   date: string;
   taskIds: string[];
+  completedIds: string[];
 };
 
 export function getLocalDateKey(date = new Date()): string {
@@ -34,11 +35,24 @@ async function readDailyPayload(): Promise<DailyTasksPayload | null> {
     return null;
   }
   try {
-    return JSON.parse(raw) as DailyTasksPayload;
+    const parsed = JSON.parse(raw) as Partial<DailyTasksPayload>;
+    if (!parsed.date || !Array.isArray(parsed.taskIds)) {
+      await AsyncStorage.removeItem(DAILY_TASKS_KEY);
+      return null;
+    }
+    return {
+      date: parsed.date,
+      taskIds: parsed.taskIds,
+      completedIds: Array.isArray(parsed.completedIds) ? parsed.completedIds : [],
+    };
   } catch {
     await AsyncStorage.removeItem(DAILY_TASKS_KEY);
     return null;
   }
+}
+
+async function writeDailyPayload(payload: DailyTasksPayload): Promise<void> {
+  await AsyncStorage.setItem(DAILY_TASKS_KEY, JSON.stringify(payload));
 }
 
 export async function clearDailyTasksIfNewDay(): Promise<boolean> {
@@ -64,12 +78,42 @@ export async function getSelectedTasks(): Promise<TaskItem[]> {
   return resolveTasksByIds(ids);
 }
 
+export async function getCompletedTaskIds(): Promise<string[]> {
+  await clearDailyTasksIfNewDay();
+  const payload = await readDailyPayload();
+  if (!payload) {
+    return [];
+  }
+  const selected = new Set(payload.taskIds);
+  return payload.completedIds.filter((id) => selected.has(id));
+}
+
+export async function toggleTaskCompleted(taskId: string): Promise<string[]> {
+  await clearDailyTasksIfNewDay();
+  const payload = await readDailyPayload();
+  if (!payload || !payload.taskIds.includes(taskId)) {
+    return [];
+  }
+
+  const completedIds = payload.completedIds.includes(taskId)
+    ? payload.completedIds.filter((id) => id !== taskId)
+    : [...payload.completedIds, taskId];
+
+  await writeDailyPayload({ ...payload, completedIds });
+  return completedIds;
+}
+
 export async function saveSelectedTaskIds(taskIds: string[]): Promise<void> {
-  const payload: DailyTasksPayload = {
+  const uniqueIds = [...new Set(taskIds)];
+  const existing = await readDailyPayload();
+  const selected = new Set(uniqueIds);
+  const completedIds = (existing?.completedIds ?? []).filter((id) => selected.has(id));
+
+  await writeDailyPayload({
     date: getLocalDateKey(),
-    taskIds: [...new Set(taskIds)],
-  };
-  await AsyncStorage.setItem(DAILY_TASKS_KEY, JSON.stringify(payload));
+    taskIds: uniqueIds,
+    completedIds,
+  });
   await AsyncStorage.removeItem(PENDING_TASKS_KEY);
 }
 

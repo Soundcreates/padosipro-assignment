@@ -8,18 +8,24 @@ import { AppButton } from '@/components/ui/button';
 import type { TaskItem } from '@/constants/tasks';
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { getSelectedTasks } from '@/storage/tasksStorage';
+import {
+  getCompletedTaskIds,
+  getSelectedTasks,
+  toggleTaskCompleted,
+} from '@/storage/tasksStorage';
 
 export default function HomeScreen() {
   const theme = useTheme();
   const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [completedIds, setCompletedIds] = useState<string[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
-      void getSelectedTasks().then((next) => {
+      void Promise.all([getSelectedTasks(), getCompletedTaskIds()]).then(([next, completed]) => {
         if (!cancelled) {
           setTasks(next);
+          setCompletedIds(completed);
         }
       });
       return () => {
@@ -27,6 +33,11 @@ export default function HomeScreen() {
       };
     }, [])
   );
+
+  const handleToggleComplete = async (taskId: string) => {
+    const next = await toggleTaskCompleted(taskId);
+    setCompletedIds(next);
+  };
 
   return (
     <AuthScreen>
@@ -46,7 +57,7 @@ export default function HomeScreen() {
           Your tasks
         </Text>
         <Text style={[styles.subtitle, { color: theme.textSecondary, fontFamily: Fonts.sans }]}>
-          Today&apos;s picks. They reset after midnight so each day starts fresh.
+          Today&apos;s picks. Tap a task to mark it complete. They reset after midnight.
         </Text>
       </View>
 
@@ -58,24 +69,48 @@ export default function HomeScreen() {
             </Text>
           </View>
         ) : (
-          tasks.map((task, index) => (
-            <View
-              key={task.id}
-              style={[
-                styles.row,
-                {
-                  borderBottomColor: theme.border,
-                  borderBottomWidth: index === tasks.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                },
-              ]}>
-              <View style={[styles.badge, { backgroundColor: theme.backgroundElement }]}>
-                <Text style={{ color: theme.brand, fontWeight: '700' }}>{index + 1}</Text>
-              </View>
-              <Text style={[styles.taskTitle, { color: theme.text, fontFamily: Fonts.sans }]}>
-                {task.title}
-              </Text>
-            </View>
-          ))
+          tasks.map((task, index) => {
+            const completed = completedIds.includes(task.id);
+            return (
+              <Pressable
+                key={task.id}
+                onPress={() => handleToggleComplete(task.id)}
+                style={[
+                  styles.row,
+                  {
+                    borderBottomColor: theme.border,
+                    borderBottomWidth: index === tasks.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                  },
+                ]}>
+                <View
+                  style={[
+                    styles.check,
+                    {
+                      borderColor: completed ? theme.brand : theme.border,
+                      backgroundColor: completed ? theme.brand : 'transparent',
+                    },
+                  ]}>
+                  {completed ? <Text style={styles.checkMark}>✓</Text> : null}
+                </View>
+                <View style={styles.taskCopy}>
+                  <Text
+                    style={[
+                      styles.taskTitle,
+                      {
+                        color: completed ? theme.textSecondary : theme.text,
+                        fontFamily: Fonts.sans,
+                        textDecorationLine: completed ? 'line-through' : 'none',
+                      },
+                    ]}>
+                    {task.title}
+                  </Text>
+                  <Text style={[styles.markLabel, { color: theme.brand, fontFamily: Fonts.sans }]}>
+                    {completed ? 'Completed' : 'Mark complete'}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })
         )}
       </View>
 
@@ -125,17 +160,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.three,
   },
-  badge: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+  check: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  checkMark: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  taskCopy: {
+    flex: 1,
+    gap: 2,
   },
   taskTitle: {
     fontSize: 15,
     fontWeight: '500',
-    flex: 1,
+  },
+  markLabel: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   actions: {
     gap: Spacing.two,
