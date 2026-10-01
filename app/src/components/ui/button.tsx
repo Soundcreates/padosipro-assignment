@@ -8,6 +8,11 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -22,36 +27,54 @@ export type AppButtonProps = PressableProps & {
 };
 
 export const AppButton = forwardRef<React.ElementRef<typeof Pressable>, AppButtonProps>(
-  function AppButton({ label, variant = 'primary', loading = false, disabled, style, ...rest }, ref) {
+  function AppButton(
+    { label, variant = 'primary', loading = false, disabled, style, onPressIn, onPressOut, ...rest },
+    ref,
+  ) {
     const theme = useTheme();
     const isDisabled = disabled || loading;
+    const scale = useSharedValue(1);
 
     const backgroundColor =
       variant === 'primary' ? theme.brand : variant === 'danger' ? '#B42318' : 'transparent';
     const textColor = variant === 'ghost' ? theme.text : '#FFFFFF';
     const borderColor = variant === 'ghost' ? theme.border : 'transparent';
 
+    const animatedStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: scale.value }],
+    }));
+
     return (
       <Pressable
         ref={ref}
         accessibilityRole="button"
         disabled={isDisabled}
-        style={({ pressed }) => [
-          styles.base,
-          {
-            backgroundColor,
-            borderColor,
-            opacity: isDisabled ? 0.45 : pressed ? 0.9 : 1,
-          },
-          variant === 'primary' && styles.primaryAccent,
+        onPressIn={(e) => {
+          scale.value = withSpring(0.96, { damping: 16, stiffness: 260 });
+          onPressIn?.(e);
+        }}
+        onPressOut={(e) => {
+          scale.value = withSpring(1, { damping: 12, stiffness: 220 });
+          onPressOut?.(e);
+        }}
+        style={({ pressed }: { pressed: boolean }) => [
+          { opacity: isDisabled ? 0.45 : pressed ? 0.92 : 1 },
           style,
         ]}
         {...rest}>
-        {loading ? (
-          <ActivityIndicator color={textColor} />
-        ) : (
-          <Text style={[styles.label, { color: textColor, fontFamily: Fonts.sans }]}>{label}</Text>
-        )}
+        <Animated.View
+          style={[
+            styles.base,
+            animatedStyle,
+            { backgroundColor, borderColor },
+            variant === 'primary' && styles.primaryAccent,
+          ]}>
+          {loading ? (
+            <ActivityIndicator color={textColor} />
+          ) : (
+            <Text style={[styles.label, { color: textColor, fontFamily: Fonts.sans }]}>{label}</Text>
+          )}
+        </Animated.View>
       </Pressable>
     );
   },

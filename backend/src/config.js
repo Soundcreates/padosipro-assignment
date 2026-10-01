@@ -21,13 +21,28 @@ const config = {
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "1h",
 
     BCRYPT_SALT_ROUNDS: Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
-
-    SMTP_HOST: process.env.SMTP_HOST || "smtp.gmail.com",
-    SMTP_PORT: Number(process.env.SMTP_PORT) || 465,
-    SMTP_SECURE: process.env.SMTP_SECURE === "true",
-    SMTP_USER: process.env.SMTP_USER || "",
-    SMTP_PASS: (process.env.SMTP_PASS || "").replace(/\s+/g, ""),
-    MAIL_FROM: process.env.SMTP_MAIL_FROM || process.env.SMTP_USER || "",
 };
+
+const smtpUser = process.env.SMTP_USER || "";
+const smtpPass = (process.env.SMTP_PASS || "").replace(/\s+/g, "");
+const useMailpit = !smtpUser || !smtpPass;
+
+if (useMailpit) {
+    config.SMTP_HOST = process.env.MAILPIT_HOST || "mailpit";
+    config.SMTP_PORT = Number(process.env.MAILPIT_PORT) || 1025;
+    config.SMTP_SECURE = false;
+    config.SMTP_USER = "";
+    config.SMTP_PASS = "";
+    config.MAIL_FROM = process.env.SMTP_MAIL_FROM || "otp@padosipro.local";
+    config.USE_MAILPIT = true;
+} else {
+    config.SMTP_HOST = process.env.SMTP_HOST || "smtp.gmail.com";
+    config.SMTP_PORT = Number(process.env.SMTP_PORT) || 465;
+    config.SMTP_SECURE = process.env.SMTP_SECURE === "true";
+    config.SMTP_USER = smtpUser;
+    config.SMTP_PASS = smtpPass;
+    config.MAIL_FROM = process.env.SMTP_MAIL_FROM || smtpUser;
+    config.USE_MAILPIT = false;
+}
 
 module.exports = config;

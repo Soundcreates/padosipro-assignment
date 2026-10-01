@@ -45,10 +45,13 @@ services:
       OTP_LENGTH: 6
       OTP_EXPIRES_IN_MINUTES: 10
       REDIS_URL: redis://redis:6379
+      MAILPIT_HOST: mailpit
     depends_on:
       db:
         condition: service_healthy
       redis:
+        condition: service_started
+      mailpit:
         condition: service_started
     networks:
       - padosipro_net
@@ -59,6 +62,16 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    networks:
+      - padosipro_net
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: padosipro_mailpit
+    restart: always
+    ports:
+      - "1025:1025"
+      - "8025:8025"
     networks:
       - padosipro_net
 

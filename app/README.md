@@ -1,12 +1,15 @@
 # PadosiPro mobile app
 
-Expo Router client for PadosiPro. The API is hosted on Render — see the root [README](../README.md).
+Expo Router client for PadosiPro. See the root [README](../README.md) for API setup with Docker.
 
 ## Quick start
 
 ```bash
+cp .env.example .env
+# set EXPO_PUBLIC_API_URL to your API (default: http://localhost:3003)
+
 npm install
 npx expo start
 ```
 
-No local backend setup is required. The default API URL is `https://padosipro-api-m8f3.onrender.com`.
+Then press `i` / `a` for a simulator, or scan the QR code with Expo Go.

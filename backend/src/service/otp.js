@@ -29,12 +29,18 @@ function getTransporter() {
         return transporter;
     }
 
+    if (config.USE_MAILPIT) {
+        console.log(
+            `OTP email: using Mailpit at ${config.SMTP_HOST}:${config.SMTP_PORT} (UI http://localhost:8025)`
+        );
+    }
+
     const options = {
         host: config.SMTP_HOST,
         port: config.SMTP_PORT,
         secure: config.SMTP_SECURE,
-
-        family: 4, //shifting to ipv4 because of render
+        // Prefer IPv4 when talking to real SMTP providers.
+        family: 4,
         pool: true,
         maxConnections: 1,
         maxMessages: 50,
