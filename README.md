@@ -8,6 +8,10 @@ Neighborhood task helper: Expo (React Native) mobile app + Express API, Postgres
 | --- | --- | --- |
 | ![Welcome screen](docs/screenshots/welcome.png) | ![Register screen](docs/screenshots/register.png) | ![Login screen](docs/screenshots/login.png) |
 
+| Home | Tasks | Profile |
+| --- | --- | --- |
+| ![Home screen](docs/screenshots/home.png) | ![Tasks screen](docs/screenshots/tasks.png) | ![Profile screen](docs/screenshots/profile.png) |
+
 ## Prerequisites
 
 - Node.js 22+
