@@ -5,12 +5,12 @@ Neighborhood task helper: Expo (React Native) mobile app + Express API, Postgres
 ## Screenshots
 
 | Welcome | Create account | Sign in |
-| --- | --- | --- |
-| ![Welcome screen](docs/screenshots/welcome.png) | ![Register screen](docs/screenshots/register.png) | ![Login screen](docs/screenshots/login.png) |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/welcome.png" alt="Welcome screen" width="230" /> | <img src="docs/screenshots/register.png" alt="Register screen" width="230" /> | <img src="docs/screenshots/login.png" alt="Login screen" width="230" /> |
 
 | Home | Tasks | Profile |
-| --- | --- | --- |
-| ![Home screen](docs/screenshots/home.png) | ![Tasks screen](docs/screenshots/tasks.png) | ![Profile screen](docs/screenshots/profile.png) |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/home.png" alt="Home screen" width="230" /> | <img src="docs/screenshots/tasks.png" alt="Tasks screen" width="230" /> | <img src="docs/screenshots/profile.png" alt="Profile screen" width="230" /> |
 
 ## Prerequisites
 
