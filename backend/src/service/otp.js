@@ -33,6 +33,8 @@ function getTransporter() {
         host: config.SMTP_HOST,
         port: config.SMTP_PORT,
         secure: config.SMTP_SECURE,
+
+        family: 4, //shifting to ipv4 because of render
         pool: true,
         maxConnections: 1,
         maxMessages: 50,

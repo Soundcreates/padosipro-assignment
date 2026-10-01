@@ -82,20 +82,34 @@ npm test
 
 ## Build an Android APK
 
+Cloud build (no local Java/SDK needed):
+
 ```bash
 cd app
 npm install
 npx eas-cli login
-npx eas build -p android --profile preview
+npx eas-cli build -p android --profile preview
 ```
 
-Local alternative (Android SDK required):
+Local build (needs JDK 17 + Android SDK):
 
 ```bash
+# once: brew install openjdk@17
 cd app
-npx expo prebuild -p android
-npx expo run:android --variant release
+./scripts/build-apk-local.sh
 ```
+
+Or export env vars yourself, then run EAS:
+
+```bash
+export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.2.13676358
+cd app
+npx eas-cli build -p android --profile preview --local
+```
+
+The previous local failure (`Unable to locate a Java Runtime`) means macOS had no JDK on `PATH`/`JAVA_HOME`.
 
 ## Project layout
 
