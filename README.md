@@ -81,3 +81,6 @@ Register → copy OTP from Mailpit (`http://localhost:8025`) or your inbox → c
 - `app/` — Expo Router mobile client
 - `backend/` — Express API, auth, OTP, migrations
 - `docker-compose.yml` — Postgres, Redis, Mailpit, API
+
+## Demo video
+https://github.com/user-attachments/assets/5ea67440-d561-4bcf-805f-630ca258d5cb
