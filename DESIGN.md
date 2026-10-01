@@ -20,7 +20,6 @@ Flow: register → email OTP → verify → confirm profile details → choose t
 
 ## Left out
 
-- Persisting profile fields (name/mobile/address) back to Postgres
 - Push notifications / reminders for tasks
 - Multi-device sync for the daily task list
 - Refresh-token rotation and remote logout
@@ -28,8 +27,7 @@ Flow: register → email OTP → verify → confirm profile details → choose t
 
 ## If we had another week
 
-1. Persist profile updates through an authenticated API and keep the client cache in sync.
-2. Add E2E smoke tests (Detox/Maestro) for register → OTP → tasks.
-3. Move daily tasks to the backend so midnight reset is server-authoritative across devices.
-4. Add CI for `npm test`, lint, and an EAS preview APK on main.
-5. Ship a short screen recording of the full happy path for reviewers.
+1. Add E2E smoke tests (Detox/Maestro) for register → OTP → tasks.
+2. Move daily tasks to the backend so midnight reset is server-authoritative across devices.
+3. Add CI for `npm test`, lint, and an EAS preview APK on main.
+4. Ship a short screen recording of the full happy path for reviewers.
